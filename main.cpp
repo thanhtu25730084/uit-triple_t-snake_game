@@ -2,12 +2,15 @@
 #include <windows.h>
 #include <conio.h>
 #include <time.h>
+
 #define MINX 2
 #define MINY 2
 #define MAXX 35
 #define MAXY 20
 
 using namespace std;
+const int WIDTH = 40;   // chiều rộng khung
+const int HEIGHT = 20;  // chiều cao khung
 
 void gotoxy(int column, int line);
 
@@ -17,40 +20,51 @@ struct Point {
 
 class CONRAN {
 public:
-    struct Point A[100];
+    Point A[200];
     int DoDai;
 
     CONRAN() {
         DoDai = 3;
-        A[0].x = 10;
-        A[0].y = 10;
-        A[1].x = 11;
-        A[1].y = 10;
-        A[2].x = 12;
-        A[2].y = 10;
+        A[0] = {10, 10};
+        A[1] = {11, 10};
+        A[2] = {12, 10};
+    }
+
+    void XoaDuoi() {
+        gotoxy(A[DoDai - 1].x, A[DoDai - 1].y);
+        cout << " ";
     }
 
     void Ve(Point Qua) {
+        // vẽ rắn
         for (int i = 0; i < DoDai; i++) {
             gotoxy(A[i].x, A[i].y);
-            cout << "X";
+            cout << "O";
         }
+
+        // vẽ quả
         gotoxy(Qua.x, Qua.y);
         cout << "*";
     }
 
     void DiChuyen(int Huong, Point &Qua) {
+        XoaDuoi();
+
+        // dời thân rắn
         for (int i = DoDai - 1; i > 0; i--)
             A[i] = A[i - 1];
-        if (Huong == 0) A[0].x = A[0].x + 1;
-        if (Huong == 1) A[0].y = A[0].y + 1;
-        if (Huong == 2) A[0].x = A[0].x - 1;
-        if (Huong == 3) A[0].y = A[0].y - 1;
 
-        if ((A[0].x == Qua.x) && (A[0].y == Qua.y)) {
+        // di chuyển đầu
+        if (Huong == 0) A[0].x++;
+        if (Huong == 1) A[0].y++;
+        if (Huong == 2) A[0].x--;
+        if (Huong == 3) A[0].y--;
+
+        // kiểm tra ăn quả
+        if (A[0].x == Qua.x && A[0].y == Qua.y) {
             DoDai++;
-            Qua.x = rand() % (MAXX - MINX) + MINX;
-            Qua.y = rand() % (MAXY - MINY) + MINY;
+            Qua.x = rand() % (MAXX - MINX - 1) + MINX + 1;
+            Qua.y = rand() % (MAXY - MINY - 1) + MINY + 1;
         }
     }
 };
@@ -62,6 +76,29 @@ void VeKhung() {
                 gotoxy(i, j);
                 printf("+");
             }
+// Hàm vẽ 1 dòng ký tự
+void drawLine(char c) {
+    for (int i = 0; i < WIDTH; i++)
+        cout << c;
+    cout << endl;
+}
+
+// Hàm vẽ khung rỗng bên trong
+void drawFrame() {
+    // Vẽ hàng trên
+    drawLine('#');
+
+    // Vẽ thân khung
+    for (int i = 0; i < HEIGHT; i++) {
+        cout << "#";                        // biên trái
+        for (int j = 0; j < WIDTH - 2; j++)
+            cout << " ";                    // phần rỗng bên trong
+        cout << "#";                        // biên phải
+        cout << endl;
+    }
+
+    // Vẽ hàng dưới
+    drawLine('#');
 }
 
 int main() {
@@ -69,9 +106,11 @@ int main() {
     int Huong = 0;
     char t;
     Point Qua;
-    srand((int) time(0));
-    Qua.x = rand() % (MAXX - MINX) + MINX;
-    Qua.y = rand() % (MAXY - MINY) + MINY;
+
+    srand((int)time(0));
+
+    Qua.x = rand() % (MAXX - MINX - 1) + MINX + 1;
+    Qua.y = rand() % (MAXY - MINY - 1) + MINY + 1;
 
     while (1) {
         if (kbhit()) {
@@ -81,23 +120,24 @@ int main() {
             if (t == 'd') Huong = 0;
             if (t == 's') Huong = 1;
         }
+
         system("cls");
+
         VeKhung();
         r.Ve(Qua);
         r.DiChuyen(Huong, Qua);
-        Sleep(300);
+
+        Sleep(150);
     }
+     cout << "=== KHUNG GAME SNAKE ===" << endl << endl;
+    drawFrame();
 
     return 0;
 }
-
 
 void gotoxy(int column, int line) {
     COORD coord;
     coord.X = column;
     coord.Y = line;
-    SetConsoleCursorPosition(
-        GetStdHandle(STD_OUTPUT_HANDLE),
-        coord
-    );
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
